@@ -39,7 +39,6 @@ map.
 
 ### Examples
 
-#### 1
 Assume we have an list of Golang objects specified by the type:
 ```
 type ExObj struct {
@@ -77,10 +76,12 @@ GET …/container?filter=(eq,weight,100)
     ]
 ```
 
+**More examples can be found in tests**
+
 ### Implementation Notes
 
 The library uses antlr4 generated code to parse the query filter string.
 Antlr4 grammars can be found [here](./antlr/grammar/Filter.g4).
 
-For the code generation it used docker image under a ghcr.io/kube-nfv/antlr:v4.13.2
+For the code generation it used docker image under a `ghcr.io/kube-nfv/antlr:v4.13.2`
 

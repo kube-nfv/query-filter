@@ -44,6 +44,10 @@ generate: antlr-generate ## Generate golang files
 mod-tidy: ## Run go mod tidy against code.
 	go mod tidy
 
+.PHONY: test
+test:
+	go test -v
+
 .PHONY: antlr-generate
 antlr-generate: $(ANTLR_GEN_DIR) $(QUERY_FILTER_GRAMMAR)
 	$(CONTAINER_TOOL) run --rm -v "$(PWD)/antlr:/work" $(ANTLR_IMAGE):$(ANTLR_IMAGE_TAG) -o generate -Dlanguage=Go grammar/$(QUERY_FILTER_GRAMMAR_NAME)

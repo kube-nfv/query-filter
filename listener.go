@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 
 	parser "github.com/kube-nfv/query-filter/antlr/generate"
 	"golang.org/x/exp/constraints"
@@ -70,14 +71,14 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 
 	if val.Kind() == reflect.Struct {
 		if attrPathLen == 0 {
-			return false, fmt.Errorf("field of the struct type can't be the lead element")
+			return false, fmt.Errorf("field of the struct type can't be the last element")
 		}
 		nextElem := attrPath[0].GetText()
 		// Traverse over fields to find attrPath[0]
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Field(i)
 			fieldType := val.Type().Field(i)
-			if fieldType.Name == nextElem {
+			if exportedFieldNameToLower(fieldType.Name) == nextElem {
 				// Found the field that corresponds to the current attrPath.
 				if !field.CanInterface() {
 					return false, fmt.Errorf("field \"%s\" is unexported", fieldType.Name)
@@ -98,7 +99,7 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 		}
 		// If field is slice or array, at least one element should conforms the attrPath filter.
 		for i := 0; i < val.Len(); i++ {
-			ac, err := needAcceptOne(val.Index(i).Interface(), op, attrPath[1:], value)
+			ac, err := needAcceptOne(val.Index(i).Interface(), op, attrPath, value)
 			if err != nil {
 				return false, fmt.Errorf("failed to apply filter to the slice element with indedx %d: %w", i, err)
 			}
@@ -168,3 +169,11 @@ func convertToString(val reflect.Value) (string, error) {
 		return "", fmt.Errorf("unsupported type: %v", val.Kind())
 	}
 }
+
+func exportedFieldNameToLower(fieldName string) string {
+	if len(fieldName) < 1 {
+		return fieldName
+	}
+	return strings.ToLower(string(fieldName[0])) + fieldName[1:]
+}
+

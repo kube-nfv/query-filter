@@ -6,9 +6,18 @@ GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
 endif
-LOCALBIN ?= $(shell pwd)/bin
 
 CONTAINER_TOOL ?= docker
+
+# Antlr options
+ANTLR_IMAGE ?= ghcr.io/kube-nfv/antlr
+ANTLR_IMAGE_TAG ?= v4.13.2
+
+
+QUERY_FILTER_GRAMMAR_NAME ?= Filter.g4
+QUERY_FILTER_GRAMMAR_DIR ?= antlr/grammar/
+QUERY_FILTER_GRAMMAR = $(QUERY_FILTER_GRAMMAR_DIR)/$(QUERY_FILTER_GRAMMAR_NAME)
+ANTLR_GEN_DIR ?= antlr/generate
 
 .PHONY: help
 help: ## Display this help.
@@ -28,16 +37,23 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: generate
-generate: ## Generate golang files
+generate: antlr-generate ## Generate golang files
 	go generate ./...
 
 .PHONY: mod-tidy
 mod-tidy: ## Run go mod tidy against code.
 	go mod tidy
 
-$(LOCALBIN):
-	@mkdir -p $(LOCALBIN)
+.PHONY: antlr-generate
+antlr-generate: $(ANTLR_GEN_DIR) $(QUERY_FILTER_GRAMMAR)
+	$(CONTAINER_TOOL) run --rm -v "$(PWD)/antlr:/work" $(ANTLR_IMAGE):$(ANTLR_IMAGE_TAG) -o generate -Dlanguage=Go grammar/$(QUERY_FILTER_GRAMMAR_NAME)
+	mv $(ANTLR_GEN_DIR)/grammar/*.go $(ANTLR_GEN_DIR)
+	rm -rf $(ANTLR_GEN_DIR)/grammar
+
+$(ANTLR_GEN_DIR):
+	mkdir -p $(ANTLR_GEN_DIR)
 
 .PHONY: clean
 clean:
-	@rm -rf $(LOCALBIN)
+	@rm -rf $(ANTLR_GEN_DIR)
+

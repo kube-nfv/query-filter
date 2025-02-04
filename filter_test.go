@@ -9,32 +9,32 @@ import (
 // Object and tests from the ETSI GS NFV-SOL 013 5.2.1
 
 type ExObj struct {
-	Id int
-	Weight int	
-	Parts []ExObjPart
+	Id     int
+	Weight int
+	Parts  []ExObjPart
 }
 
 type ExObjPart struct {
-	Id int
+	Id    int
 	Color string
 }
 
 func NewSol13Ex1Obj() []*ExObj {
 	return []*ExObj{
 		{
-			Id: 123,
+			Id:     123,
 			Weight: 100,
 			Parts: []ExObjPart{
-				{ Id: 1, Color: "red" },
-				{ Id: 2, Color: "green" },
+				{Id: 1, Color: "red"},
+				{Id: 2, Color: "green"},
 			},
 		},
 		{
-			Id: 456,
+			Id:     456,
 			Weight: 500,
 			Parts: []ExObjPart{
-				{ Id: 3, Color: "green" },
-				{ Id: 4, Color: "blue"},
+				{Id: 3, Color: "green"},
+				{Id: 4, Color: "blue"},
 			},
 		},
 	}

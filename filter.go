@@ -8,7 +8,7 @@ import (
 )
 
 func FilterList[T any](in []T, filterQuery string) ([]T, error) {
-	
+
 	if in == nil || len(in) == 0 || filterQuery == "" {
 		return in, nil
 	}
@@ -18,7 +18,6 @@ func FilterList[T any](in []T, filterQuery string) ([]T, error) {
 	lexer := parser.NewFilterLexer(is)
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	p := parser.NewFilterParser(stream)
-
 
 	errorListener := &customErrorListener{}
 	p.RemoveErrorListeners()

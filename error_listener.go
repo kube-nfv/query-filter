@@ -23,4 +23,3 @@ func (l *customErrorListener) SyntaxError(recognizer antlr.Recognizer, offending
 func (l *customErrorListener) Error() error {
 	return errors.Join(l.errors...)
 }
-

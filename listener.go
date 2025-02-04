@@ -13,7 +13,7 @@ import (
 
 type filterListener[T any] struct {
 	*parser.BaseFilterListener
-	errors []error
+	errors         []error
 	unfilteredList []T
 	// Object accept list. List idx identify object in unfilteredList and value identify
 	// if object should be accepted.
@@ -29,7 +29,7 @@ func newFilterListener[T any](unfilteredList []T) *filterListener[T] {
 
 	return &filterListener[T]{
 		unfilteredList: unfilteredList,
-		acceptList: acceptList,
+		acceptList:     acceptList,
 	}
 }
 
@@ -60,9 +60,8 @@ func (l *filterListener[T]) GetFiltered() ([]T, error) {
 	return out, l.Error()
 }
 
-
 // Function verifies is the object need to be accepted or filtered
-func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAttrNameContext, value parser.IValueContext ) (bool, error) {
+func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAttrNameContext, value parser.IValueContext) (bool, error) {
 	val := reflect.ValueOf(obj)
 	if val.Kind() == reflect.Pointer {
 		val = val.Elem()
@@ -124,9 +123,8 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 		return false, fmt.Errorf("failed to convert leaf field value to the string: %w", err)
 	}
 
-	return binOp(strVal, value.GetText() ), nil
+	return binOp(strVal, value.GetText()), nil
 }
-
 
 type BinaryPredicate[T constraints.Ordered] func(T, T) bool
 
@@ -135,15 +133,15 @@ func opOneToBinaryPredicate[T constraints.Ordered](opOne string) (BinaryPredicat
 	case "eq":
 		return func(t1, t2 T) bool { return t1 == t2 }, nil
 	case "neq":
-		return func(t1, t2 T) bool { return t1 != t2}, nil
+		return func(t1, t2 T) bool { return t1 != t2 }, nil
 	case "gt":
-		return func(t1, t2 T) bool { return t1 > t2}, nil
+		return func(t1, t2 T) bool { return t1 > t2 }, nil
 	case "lt":
-		return func(t1, t2 T) bool { return t1 < t2}, nil
+		return func(t1, t2 T) bool { return t1 < t2 }, nil
 	case "gte":
-		return func(t1, t2 T) bool { return t1 >= t2}, nil
+		return func(t1, t2 T) bool { return t1 >= t2 }, nil
 	case "lte":
-		return func(t1, t2 T) bool { return t1 <= t2}, nil
+		return func(t1, t2 T) bool { return t1 <= t2 }, nil
 	default:
 		return nil, fmt.Errorf("undefined opOne operation \"%s\"", opOne)
 	}
@@ -176,4 +174,3 @@ func exportedFieldNameToLower(fieldName string) string {
 	}
 	return strings.ToLower(string(fieldName[0])) + fieldName[1:]
 }
-

@@ -46,7 +46,7 @@ value
     ;
 
 STRING
-    : [a-zA-Z0-9@_]+    // Basic string support, can be extended
+    : [a-zA-Z0-9@_-]+    // Basic string support, can be extended
     ;
 
 WS

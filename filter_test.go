@@ -82,3 +82,64 @@ func TestHyphenatedValues(t *testing.T) {
 	assert.Equal(t, 1, len(res))
 	assert.Equal(t, "focal-server-cloudimg-amd64", res[0].Name)
 }
+
+// Test with fmt.Stringer implementation (like k8s Quantity)
+type StringerType struct {
+	value string
+}
+
+func (s StringerType) String() string {
+	return s.value
+}
+
+type ResourceSpec struct {
+	Memory StringerType
+	Cpu    int
+}
+
+func TestStringerInterface(t *testing.T) {
+	resources := []*ResourceSpec{
+		{Memory: StringerType{value: "400M"}, Cpu: 4},
+		{Memory: StringerType{value: "1Gi"}, Cpu: 8},
+		{Memory: StringerType{value: "12Gi"}, Cpu: 16},
+	}
+
+	// Filter by memory using Stringer interface
+	res, err := FilterList(resources, "filter=(eq,memory,400M)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res))
+	assert.Equal(t, "400M", res[0].Memory.String())
+
+	// Filter by CPU
+	res2, err := FilterList(resources, "filter=(eq,cpu,16)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res2))
+	assert.Equal(t, "12Gi", res2[0].Memory.String())
+}
+
+// Test nested Stringer types (like the user's protobuf case)
+type NestedResource struct {
+	VirtualMemSize StringerType
+}
+
+type VirtualMemory struct {
+	VirtualMemSize StringerType
+}
+
+type Flavour struct {
+	VirtualMemory VirtualMemory
+	NumCPU        int
+}
+
+func TestNestedStringerInterface(t *testing.T) {
+	flavours := []*Flavour{
+		{VirtualMemory: VirtualMemory{VirtualMemSize: StringerType{value: "400M"}}, NumCPU: 4},
+		{VirtualMemory: VirtualMemory{VirtualMemSize: StringerType{value: "1Gi"}}, NumCPU: 8},
+	}
+
+	// Filter by nested memory value
+	res, err := FilterList(flavours, "filter=(eq,virtualMemory/virtualMemSize,400M)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res))
+	assert.Equal(t, "400M", res[0].VirtualMemory.VirtualMemSize.String())
+}

@@ -69,7 +69,17 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 	attrPathLen := len(attrPath)
 
 	if val.Kind() == reflect.Struct {
+		// Check if the struct implements fmt.Stringer and we're at a leaf node
 		if attrPathLen == 0 {
+			// Try to use String() method if available
+			if stringer, ok := val.Interface().(fmt.Stringer); ok {
+				strVal := stringer.String()
+				binOp, err := opOneToBinaryPredicate[string](op.GetText())
+				if err != nil {
+					return false, fmt.Errorf("failed to get binary predicate from option \"%s\": %w", op.GetText(), err)
+				}
+				return binOp(strVal, value.GetText()), nil
+			}
 			return false, fmt.Errorf("field of the struct type can't be the last element")
 		}
 		nextElem := attrPath[0].GetText()

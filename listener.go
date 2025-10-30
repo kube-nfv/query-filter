@@ -73,21 +73,22 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 			return false, fmt.Errorf("field of the struct type can't be the last element")
 		}
 		nextElem := attrPath[0].GetText()
-		// Traverse over fields to find attrPath[0]
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Field(i)
 			fieldType := val.Type().Field(i)
-			if exportedFieldNameToLower(fieldType.Name) == nextElem {
-				// Found the field that corresponds to the current attrPath.
-				if !field.CanInterface() {
-					return false, fmt.Errorf("field \"%s\" is unexported", fieldType.Name)
-				}
-				res, err := needAcceptOne(field.Interface(), op, attrPath[1:], value)
-				if err != nil {
-					return false, fmt.Errorf("failed to apply filter for the field \"%s\": %w", fieldType.Name, err)
-				}
-				return res, nil
+
+			if !fieldMatchesName(fieldType, nextElem) {
+				continue
 			}
+
+			if !field.CanInterface() {
+				return false, fmt.Errorf("field \"%s\" is unexported", fieldType.Name)
+			}
+			res, err := needAcceptOne(field.Interface(), op, attrPath[1:], value)
+			if err != nil {
+				return false, fmt.Errorf("failed to apply filter for the field \"%s\": %w", fieldType.Name, err)
+			}
+			return res, nil
 		}
 		return false, fmt.Errorf("struct doesn't contains \"%s\" field", nextElem)
 	}
@@ -198,4 +199,14 @@ func applyPredicate(actualValue, op, expectedValue string) (bool, error) {
 		return false, fmt.Errorf("failed to get binary predicate from option \"%s\": %w", op, err)
 	}
 	return binOp(actualValue, expectedValue), nil
+}
+
+func fieldMatchesName(field reflect.StructField, name string) bool {
+	if jsonTag := field.Tag.Get("json"); jsonTag != "" {
+		jsonName := strings.Split(jsonTag, ",")[0]
+		if jsonName != "" && jsonName != "-" {
+			return jsonName == name
+		}
+	}
+	return exportedFieldNameToLower(field.Name) == name
 }

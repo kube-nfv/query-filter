@@ -126,13 +126,13 @@ type VirtualMemory struct {
 	VirtualMemSize StringerType
 }
 
-type Flavour struct {
+type SimpleFlavour struct {
 	VirtualMemory VirtualMemory
 	NumCPU        int
 }
 
 func TestNestedStringerInterface(t *testing.T) {
-	flavours := []*Flavour{
+	flavours := []*SimpleFlavour{
 		{VirtualMemory: VirtualMemory{VirtualMemSize: StringerType{value: "400M"}}, NumCPU: 4},
 		{VirtualMemory: VirtualMemory{VirtualMemSize: StringerType{value: "1Gi"}}, NumCPU: 8},
 	}
@@ -169,5 +169,127 @@ func TestPointerReceiverStringer(t *testing.T) {
 	res, err := FilterList(resources, "filter=(eq,size,12Gi)")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(res))
+	assert.Equal(t, "12Gi", res[0].Size.String())
+}
+
+// Test JSON tag support
+type Quantity struct {
+	value string
+}
+
+func (q *Quantity) String() string {
+	return q.value
+}
+
+type StorageAttribute struct {
+	TypeOfStorage string   `json:"typeOfStorage"`
+	SizeOfStorage Quantity `json:"sizeOfStorage"`
+	IsBoot        bool     `json:"isBoot"`
+}
+
+type VirtualMemorySpec struct {
+	VirtualMemSize Quantity `json:"string"`
+}
+
+type VirtualCPU struct {
+	NumVirtualCpu int `json:"numVirtualCpu"`
+}
+
+type Flavour struct {
+	VirtualMemory     VirtualMemorySpec  `json:"virtualMemory"`
+	VirtualCpu        VirtualCPU         `json:"virtualCpu"`
+	StorageAttributes []StorageAttribute `json:"storageAttributes"`
+	FlavourId         string             `json:"flavourId"`
+}
+
+func TestJSONTagSupport(t *testing.T) {
+	flavours := []*Flavour{
+		{
+			VirtualMemory: VirtualMemorySpec{VirtualMemSize: Quantity{value: "400M"}},
+			VirtualCpu:    VirtualCPU{NumVirtualCpu: 4},
+			StorageAttributes: []StorageAttribute{
+				{TypeOfStorage: "volume", SizeOfStorage: Quantity{value: "12Gi"}, IsBoot: true},
+			},
+			FlavourId: "flav-1",
+		},
+		{
+			VirtualMemory: VirtualMemorySpec{VirtualMemSize: Quantity{value: "1Gi"}},
+			VirtualCpu:    VirtualCPU{NumVirtualCpu: 8},
+			StorageAttributes: []StorageAttribute{
+				{TypeOfStorage: "volume", SizeOfStorage: Quantity{value: "20Gi"}, IsBoot: false},
+			},
+			FlavourId: "flav-2",
+		},
+	}
+
+	// Test filtering by JSON tag name (not Go field name)
+	res, err := FilterList(flavours, "filter=(eq,virtualMemory/string,400M)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res))
+	assert.Equal(t, "flav-1", res[0].FlavourId)
+
+	// Test filtering by nested JSON tag
+	res2, err := FilterList(flavours, "filter=(eq,virtualCpu/numVirtualCpu,4)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res2))
+	assert.Equal(t, "flav-1", res2[0].FlavourId)
+
+	// Test filtering in slice with JSON tag
+	res3, err := FilterList(flavours, "filter=(eq,storageAttributes/sizeOfStorage,12Gi)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res3))
+	assert.Equal(t, "flav-1", res3[0].FlavourId)
+
+	// Test complex filter matching user's scenario
+	res4, err := FilterList(flavours, "filter=(eq,virtualMemory/string,400M);(eq,virtualCpu/numVirtualCpu,4);(eq,storageAttributes/sizeOfStorage,12Gi)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res4))
+	assert.Equal(t, "flav-1", res4[0].FlavourId)
+}
+
+// Test that fields without JSON tags still work (backwards compatibility)
+type LegacyResource struct {
+	Memory int
+	Cpu    int
+}
+
+func TestBackwardsCompatibility(t *testing.T) {
+	resources := []*LegacyResource{
+		{Memory: 100, Cpu: 4},
+		{Memory: 200, Cpu: 8},
+	}
+
+	// Should still work with Go field names
+	res, err := FilterList(resources, "filter=(eq,memory,100)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res))
+	assert.Equal(t, 100, res[0].Memory)
+}
+
+// Test JSON tags with fmt.Stringer leaf nodes
+type StringerWithJSONTag struct {
+	value string
+}
+
+func (s *StringerWithJSONTag) String() string {
+	return s.value
+}
+
+type ResourceWithJSONStringer struct {
+	Size StringerWithJSONTag `json:"sizeOfStorage"`
+	Name string              `json:"resourceName"`
+}
+
+func TestJSONTagWithStringerLeaf(t *testing.T) {
+	resources := []*ResourceWithJSONStringer{
+		{Size: StringerWithJSONTag{value: "12Gi"}, Name: "resource-1"},
+		{Size: StringerWithJSONTag{value: "400M"}, Name: "resource-2"},
+	}
+
+	// Filter using JSON tag name on a Stringer field
+	res, err := FilterList(resources, "filter=(eq,sizeOfStorage,12Gi)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res))
+	assert.Equal(t, "resource-1", res[0].Name)
 	assert.Equal(t, "12Gi", res[0].Size.String())
 }

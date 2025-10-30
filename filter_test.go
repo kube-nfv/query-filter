@@ -143,3 +143,31 @@ func TestNestedStringerInterface(t *testing.T) {
 	assert.Equal(t, 1, len(res))
 	assert.Equal(t, "400M", res[0].VirtualMemory.VirtualMemSize.String())
 }
+
+// Test Stringer with pointer receiver (like k8s Quantity)
+type PointerStringerType struct {
+	value string
+}
+
+// String method defined on pointer receiver
+func (s *PointerStringerType) String() string {
+	return s.value
+}
+
+type K8sQuantity struct {
+	Size PointerStringerType
+}
+
+func TestPointerReceiverStringer(t *testing.T) {
+	resources := []*K8sQuantity{
+		{Size: PointerStringerType{value: "12Gi"}},
+		{Size: PointerStringerType{value: "400M"}},
+		{Size: PointerStringerType{value: "1Gi"}},
+	}
+
+	// Filter by size using pointer receiver Stringer
+	res, err := FilterList(resources, "filter=(eq,size,12Gi)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res))
+	assert.Equal(t, "12Gi", res[0].Size.String())
+}

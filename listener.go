@@ -62,23 +62,13 @@ func (l *filterListener[T]) GetFiltered() ([]T, error) {
 
 // Function verifies is the object need to be accepted or filtered
 func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAttrNameContext, value parser.IValueContext) (bool, error) {
-	val := reflect.ValueOf(obj)
-	if val.Kind() == reflect.Pointer {
-		val = val.Elem()
-	}
+	val := derefPointer(reflect.ValueOf(obj))
 	attrPathLen := len(attrPath)
 
 	if val.Kind() == reflect.Struct {
-		// Check if the struct implements fmt.Stringer and we're at a leaf node
 		if attrPathLen == 0 {
-			// Try to use String() method if available
-			if stringer, ok := val.Interface().(fmt.Stringer); ok {
-				strVal := stringer.String()
-				binOp, err := opOneToBinaryPredicate[string](op.GetText())
-				if err != nil {
-					return false, fmt.Errorf("failed to get binary predicate from option \"%s\": %w", op.GetText(), err)
-				}
-				return binOp(strVal, value.GetText()), nil
+			if stringer, ok := getStringer(val); ok {
+				return applyPredicate(stringer.String(), op.GetText(), value.GetText())
 			}
 			return false, fmt.Errorf("field of the struct type can't be the last element")
 		}
@@ -124,16 +114,11 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 	if attrPathLen != 0 {
 		return false, fmt.Errorf("found leaf field while attributes still exists")
 	}
-	binOp, err := opOneToBinaryPredicate[string](op.GetText())
-	if err != nil {
-		return false, fmt.Errorf("failed to get binary predicate from option \"%s\": %w", op.GetText(), err)
-	}
 	strVal, err := convertToString(val)
 	if err != nil {
 		return false, fmt.Errorf("failed to convert leaf field value to the string: %w", err)
 	}
-
-	return binOp(strVal, value.GetText()), nil
+	return applyPredicate(strVal, op.GetText(), value.GetText())
 }
 
 type BinaryPredicate[T constraints.Ordered] func(T, T) bool
@@ -158,10 +143,7 @@ func opOneToBinaryPredicate[T constraints.Ordered](opOne string) (BinaryPredicat
 }
 
 func convertToString(val reflect.Value) (string, error) {
-	if val.Kind() == reflect.Pointer {
-		val = val.Elem()
-	}
-
+	val = derefPointer(val)
 	switch val.Kind() {
 	case reflect.String:
 		return val.String(), nil
@@ -183,4 +165,37 @@ func exportedFieldNameToLower(fieldName string) string {
 		return fieldName
 	}
 	return strings.ToLower(string(fieldName[0])) + fieldName[1:]
+}
+
+func derefPointer(val reflect.Value) reflect.Value {
+	if val.Kind() == reflect.Pointer {
+		return val.Elem()
+	}
+	return val
+}
+
+func getStringer(val reflect.Value) (fmt.Stringer, bool) {
+	if stringer, ok := val.Interface().(fmt.Stringer); ok {
+		return stringer, true
+	}
+	if val.CanAddr() {
+		if stringer, ok := val.Addr().Interface().(fmt.Stringer); ok {
+			return stringer, true
+		}
+	} else {
+		ptrVal := reflect.New(val.Type())
+		ptrVal.Elem().Set(val)
+		if stringer, ok := ptrVal.Interface().(fmt.Stringer); ok {
+			return stringer, true
+		}
+	}
+	return nil, false
+}
+
+func applyPredicate(actualValue, op, expectedValue string) (bool, error) {
+	binOp, err := opOneToBinaryPredicate[string](op)
+	if err != nil {
+		return false, fmt.Errorf("failed to get binary predicate from option \"%s\": %w", op, err)
+	}
+	return binOp(actualValue, expectedValue), nil
 }

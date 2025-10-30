@@ -63,3 +63,22 @@ func TestSol13Ex4MultipleFilters(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, res, []*ExObj{NewSol13Ex1Obj()[1]})
 }
+
+// Test with hyphenated values
+type SoftwareImage struct {
+	Name   string
+	Status string
+}
+
+func TestHyphenatedValues(t *testing.T) {
+	images := []*SoftwareImage{
+		{Name: "focal-server-cloudimg-amd64", Status: "ready"},
+		{Name: "ubuntu-minimal-cloudimg", Status: "pending"},
+		{Name: "debian-server-image", Status: "ready"},
+	}
+
+	res, err := FilterList(images, "filter=(eq,name,focal-server-cloudimg-amd64)")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res))
+	assert.Equal(t, "focal-server-cloudimg-amd64", res[0].Name)
+}

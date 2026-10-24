@@ -202,6 +202,12 @@ func applyPredicate(actualValue, op, expectedValue string) (bool, error) {
 }
 
 func fieldMatchesName(field reflect.StructField, name string) bool {
+	// Protobuf-generated fields carry their JSON (lowerCamelCase) name in the protobuf tag.
+	for _, part := range strings.Split(field.Tag.Get("protobuf"), ",") {
+		if jsonName, ok := strings.CutPrefix(part, "json="); ok {
+			return jsonName == name
+		}
+	}
 	if jsonTag := field.Tag.Get("json"); jsonTag != "" {
 		jsonName := strings.Split(jsonTag, ",")[0]
 		if jsonName != "" && jsonName != "-" {

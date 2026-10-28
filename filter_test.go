@@ -293,3 +293,25 @@ func TestJSONTagWithStringerLeaf(t *testing.T) {
 	assert.Equal(t, "resource-1", res[0].Name)
 	assert.Equal(t, "12Gi", res[0].Size.String())
 }
+
+// ProtoFlavour mirrors protoc-gen-go output: the json tag is snake_case, the wire name is in the protobuf tag.
+type ProtoFlavour struct {
+	FlavourName string `protobuf:"bytes,2,opt,name=flavour_name,json=flavourName,proto3" json:"flavour_name,omitempty"`
+	Name        string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func TestProtobufJSONName(t *testing.T) {
+	flavours := []*ProtoFlavour{{FlavourName: "small", Name: "a"}, {FlavourName: "large", Name: "b"}}
+
+	res, err := FilterList(flavours, "filter=(eq,flavourName,large)")
+	assert.NoError(t, err)
+	assert.Equal(t, []*ProtoFlavour{flavours[1]}, res)
+
+	// A single-word field has no json= part; the json tag still matches.
+	res, err = FilterList(flavours, "filter=(eq,name,a)")
+	assert.NoError(t, err)
+	assert.Equal(t, []*ProtoFlavour{flavours[0]}, res)
+
+	_, err = FilterList(flavours, "filter=(eq,flavour_name,large)")
+	assert.Error(t, err)
+}

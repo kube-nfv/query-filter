@@ -37,6 +37,10 @@ character in "simpleFilterExprOne" and " simpleFilterExprMulti" allows concatena
 by attributes deeper in the hierarchy of a structured document. The special attribute name "@key" refers to the key of a
 map.
 
+An attribute name matches a Go struct field by, in order: the JSON name in a `protobuf` struct tag (so protoc-gen-go
+types are filtered by their lowerCamelCase wire names, e.g. `flavourName`), the `json` struct tag, or the field name with
+its first letter lowercased.
+
 ### Examples
 
 Assume we have an list of Golang objects specified by the type:

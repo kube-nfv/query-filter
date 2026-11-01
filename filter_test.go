@@ -315,3 +315,22 @@ func TestProtobufJSONName(t *testing.T) {
 	_, err = FilterList(flavours, "filter=(eq,flavour_name,large)")
 	assert.Error(t, err)
 }
+
+// ProtoState mirrors a protoc-gen-go enum: an int32 with a value-receiver String.
+type ProtoState int32
+
+func (s ProtoState) String() string {
+	return map[ProtoState]string{0: "STATE_UNSPECIFIED", 1: "STATE_STARTED"}[s]
+}
+
+type ProtoCompute struct {
+	State ProtoState `protobuf:"varint,1,opt,name=state,proto3,enum=x.State" json:"state,omitempty"`
+}
+
+func TestEnumByName(t *testing.T) {
+	computes := []*ProtoCompute{{State: 0}, {State: 1}}
+
+	res, err := FilterList(computes, "filter=(eq,state,STATE_STARTED)")
+	assert.NoError(t, err)
+	assert.Equal(t, []*ProtoCompute{computes[1]}, res)
+}

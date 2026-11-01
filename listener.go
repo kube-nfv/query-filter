@@ -115,6 +115,10 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 	if attrPathLen != 0 {
 		return false, fmt.Errorf("found leaf field while attributes still exists")
 	}
+	// Enums (e.g. protobuf) compare by name.
+	if stringer, ok := getStringer(val); ok {
+		return applyPredicate(stringer.String(), op.GetText(), value.GetText())
+	}
 	strVal, err := convertToString(val)
 	if err != nil {
 		return false, fmt.Errorf("failed to convert leaf field value to the string: %w", err)

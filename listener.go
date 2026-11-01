@@ -74,9 +74,22 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 			return false, fmt.Errorf("field of the struct type can't be the last element")
 		}
 		nextElem := attrPath[0].GetText()
+		hasOneof := false
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Field(i)
 			fieldType := val.Type().Field(i)
+
+			// A protobuf oneof is an interface holding a wrapper struct whose field is the member set.
+			if _, ok := fieldType.Tag.Lookup("protobuf_oneof"); ok {
+				hasOneof = true
+				if !field.IsNil() {
+					if wrapper := derefPointer(field.Elem()); wrapper.Kind() == reflect.Struct && wrapper.NumField() == 1 &&
+						fieldMatchesName(wrapper.Type().Field(0), nextElem) {
+						return needAcceptOne(wrapper.Interface(), op, attrPath, value)
+					}
+				}
+				continue
+			}
 
 			if !fieldMatchesName(fieldType, nextElem) {
 				continue
@@ -90,6 +103,10 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 				return false, fmt.Errorf("failed to apply filter for the field \"%s\": %w", fieldType.Name, err)
 			}
 			return res, nil
+		}
+		if hasOneof {
+			// Possibly a oneof member that is not set.
+			return false, nil
 		}
 		return false, fmt.Errorf("struct doesn't contains \"%s\" field", nextElem)
 	}

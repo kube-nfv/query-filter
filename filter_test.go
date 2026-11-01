@@ -366,3 +366,45 @@ func TestValues(t *testing.T) {
 		})
 	}
 }
+
+// ProtoImage mirrors protoc-gen-go output for a oneof: an interface field holding one wrapper struct per member.
+type ProtoImage struct {
+	Source *ProtoImageSource `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+}
+
+type ProtoImageSource struct {
+	Source isProtoImageSource_Source `protobuf_oneof:"source"`
+}
+
+type isProtoImageSource_Source interface{ isProtoImageSource_Source() }
+
+type ProtoImageSource_Http struct {
+	Http *ProtoImageSourceHttp `protobuf:"bytes,1,opt,name=http,proto3,oneof"`
+}
+
+type ProtoImageSource_RegistryImage struct {
+	RegistryImage string `protobuf:"bytes,2,opt,name=registry_image,json=registryImage,proto3,oneof"`
+}
+
+func (*ProtoImageSource_Http) isProtoImageSource_Source()          {}
+func (*ProtoImageSource_RegistryImage) isProtoImageSource_Source() {}
+
+type ProtoImageSourceHttp struct {
+	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+}
+
+func TestProtobufOneof(t *testing.T) {
+	images := []*ProtoImage{
+		{Source: &ProtoImageSource{Source: &ProtoImageSource_Http{Http: &ProtoImageSourceHttp{Url: "https://example.com/a.img"}}}},
+		{Source: &ProtoImageSource{Source: &ProtoImageSource_RegistryImage{RegistryImage: "quay.io/a:1"}}},
+		{Source: &ProtoImageSource{}},
+	}
+
+	res, err := FilterList(images, "filter=(eq,source/http/url,https://example.com/a.img)")
+	assert.NoError(t, err)
+	assert.Equal(t, images[0:1], res)
+
+	res, err = FilterList(images, "filter=(eq,source/registryImage,quay.io/a:1)")
+	assert.NoError(t, err)
+	assert.Equal(t, images[1:2], res)
+}

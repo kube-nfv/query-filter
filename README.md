@@ -44,7 +44,8 @@ its first letter lowercased.
 A value that contains `,`, `'` or `)` is enclosed in single quotes, with a quote inside written as `''`
 (`(eq,name,'a,b''c')`). An unquoted value may contain spaces, `/` and URL characters
 (`(eq,source/http/url,https://example.com/a.img)`). A leaf that implements `fmt.Stringer`, such as a protobuf enum, is
-compared by its string value.
+compared by its string value. A protobuf oneof is transparent: its members are named directly (`source/http/url` when `http` is a oneof member of
+`source`), and a member that is not set does not match.
 
 ### Examples
 

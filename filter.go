@@ -2,10 +2,13 @@ package filter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/kube-nfv/query-filter/antlr/generate"
 )
+
+const filterPrefix = "filter="
 
 func FilterList[T any](in []T, filterQuery string) ([]T, error) {
 
@@ -19,14 +22,16 @@ func FilterList[T any](in []T, filterQuery string) ([]T, error) {
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	p := parser.NewFilterParser(stream)
 
-	errorListener := &customErrorListener{}
+	// Errors refer to the expression, without the "filter=" prefix.
+	expr := strings.TrimPrefix(filterQuery, filterPrefix)
+	errorListener := &customErrorListener{offset: len(filterQuery) - len(expr)}
 	p.RemoveErrorListeners()
 	p.AddErrorListener(errorListener)
 
 	tree := p.Filter()
 
 	if err := errorListener.Error(); err != nil {
-		return nil, fmt.Errorf("failed to parse filter query \"%s\": %w", filterQuery, err)
+		return nil, fmt.Errorf("failed to parse filter \"%s\": %w", expr, err)
 	}
 
 	listener := newFilterListener(in)

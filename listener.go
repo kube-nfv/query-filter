@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/kube-nfv/query-filter/antlr/generate"
 	"golang.org/x/exp/constraints"
 )
@@ -68,7 +69,7 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 	if val.Kind() == reflect.Struct {
 		if attrPathLen == 0 {
 			if stringer, ok := getStringer(val); ok {
-				return applyPredicate(stringer.String(), op.GetText(), value.GetText())
+				return applyPredicate(stringer.String(), op.GetText(), valueText(value))
 			}
 			return false, fmt.Errorf("field of the struct type can't be the last element")
 		}
@@ -117,13 +118,13 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 	}
 	// Enums (e.g. protobuf) compare by name.
 	if stringer, ok := getStringer(val); ok {
-		return applyPredicate(stringer.String(), op.GetText(), value.GetText())
+		return applyPredicate(stringer.String(), op.GetText(), valueText(value))
 	}
 	strVal, err := convertToString(val)
 	if err != nil {
 		return false, fmt.Errorf("failed to convert leaf field value to the string: %w", err)
 	}
-	return applyPredicate(strVal, op.GetText(), value.GetText())
+	return applyPredicate(strVal, op.GetText(), valueText(value))
 }
 
 type BinaryPredicate[T constraints.Ordered] func(T, T) bool
@@ -219,4 +220,14 @@ func fieldMatchesName(field reflect.StructField, name string) bool {
 		}
 	}
 	return exportedFieldNameToLower(field.Name) == name
+}
+
+// valueText returns a value as written: unquoted (with ” as a quote), or its original text, spaces included.
+func valueText(value parser.IValueContext) string {
+	if q := value.QUOTED(); q != nil {
+		s := q.GetText()
+		return strings.ReplaceAll(s[1:len(s)-1], "''", "'")
+	}
+	start, stop := value.GetStart(), value.GetStop()
+	return start.GetInputStream().GetTextFromInterval(antlr.NewInterval(start.GetStart(), stop.GetStop()))
 }

@@ -36,6 +36,12 @@ type FilterListener interface {
 	// EnterValue is called when entering the value production.
 	EnterValue(c *ValueContext)
 
+	// EnterName is called when entering the name production.
+	EnterName(c *NameContext)
+
+	// EnterKeyword is called when entering the keyword production.
+	EnterKeyword(c *KeywordContext)
+
 	// ExitFilter is called when exiting the filter production.
 	ExitFilter(c *FilterContext)
 
@@ -62,4 +68,10 @@ type FilterListener interface {
 
 	// ExitValue is called when exiting the value production.
 	ExitValue(c *ValueContext)
+
+	// ExitName is called when exiting the name production.
+	ExitName(c *NameContext)
+
+	// ExitKeyword is called when exiting the keyword production.
+	ExitKeyword(c *KeywordContext)
 }

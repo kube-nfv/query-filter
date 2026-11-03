@@ -68,6 +68,10 @@ func (l *filterListener[T]) GetFiltered() ([]T, error) {
 // Function verifies is the object need to be accepted or filtered
 func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAttrNameContext, value parser.IValueContext, cmp Comparator) (bool, error) {
 	val := derefPointer(reflect.ValueOf(obj))
+	// A nil pointer is an unset attribute.
+	if !val.IsValid() {
+		return false, nil
+	}
 	attrPathLen := len(attrPath)
 
 	if val.Kind() == reflect.Struct {

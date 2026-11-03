@@ -19,9 +19,11 @@ type filterListener[T any] struct {
 	// Object accept list. List idx identify object in unfilteredList and value identify
 	// if object should be accepted.
 	acceptList []bool
+	// Comparators by attribute path.
+	comparators map[string]Comparator
 }
 
-func newFilterListener[T any](unfilteredList []T) *filterListener[T] {
+func newFilterListener[T any](unfilteredList []T, comparators map[string]Comparator) *filterListener[T] {
 	// Before filtering accept all the objects
 	acceptList := make([]bool, len(unfilteredList))
 	for i := 0; i < len(unfilteredList); i++ {
@@ -31,12 +33,14 @@ func newFilterListener[T any](unfilteredList []T) *filterListener[T] {
 	return &filterListener[T]{
 		unfilteredList: unfilteredList,
 		acceptList:     acceptList,
+		comparators:    comparators,
 	}
 }
 
 func (l *filterListener[T]) ExitSimpleFilterExprOne(ctx *parser.SimpleFilterExprOneContext) {
+	cmp := l.comparators[attrPathText(ctx.AllAttrName())]
 	for unfObjIdx, unfObj := range l.unfilteredList {
-		ac, err := needAcceptOne(unfObj, ctx.OpOne(), ctx.AllAttrName(), ctx.Value())
+		ac, err := needAcceptOne(unfObj, ctx.OpOne(), ctx.AllAttrName(), ctx.Value(), cmp)
 		if err != nil {
 			l.errors = append(l.errors, fmt.Errorf("failed to proceed rule with index \"%d\": %w", ctx.GetRuleIndex(), err))
 		}
@@ -62,14 +66,18 @@ func (l *filterListener[T]) GetFiltered() ([]T, error) {
 }
 
 // Function verifies is the object need to be accepted or filtered
-func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAttrNameContext, value parser.IValueContext) (bool, error) {
+func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAttrNameContext, value parser.IValueContext, cmp Comparator) (bool, error) {
 	val := derefPointer(reflect.ValueOf(obj))
+	// A nil pointer is an unset attribute.
+	if !val.IsValid() {
+		return false, nil
+	}
 	attrPathLen := len(attrPath)
 
 	if val.Kind() == reflect.Struct {
 		if attrPathLen == 0 {
 			if stringer, ok := getStringer(val); ok {
-				return applyPredicate(stringer.String(), op.GetText(), valueText(value))
+				return applyPredicate(stringer.String(), op.GetText(), valueText(value), cmp)
 			}
 			return false, fmt.Errorf("field of the struct type can't be the last element")
 		}
@@ -85,7 +93,7 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 				if !field.IsNil() {
 					if wrapper := derefPointer(field.Elem()); wrapper.Kind() == reflect.Struct && wrapper.NumField() == 1 &&
 						fieldMatchesName(wrapper.Type().Field(0), nextElem) {
-						return needAcceptOne(wrapper.Interface(), op, attrPath, value)
+						return needAcceptOne(wrapper.Interface(), op, attrPath, value, cmp)
 					}
 				}
 				continue
@@ -98,7 +106,7 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 			if !field.CanInterface() {
 				return false, fmt.Errorf("field \"%s\" is unexported", fieldType.Name)
 			}
-			res, err := needAcceptOne(field.Interface(), op, attrPath[1:], value)
+			res, err := needAcceptOne(field.Interface(), op, attrPath[1:], value, cmp)
 			if err != nil {
 				return false, fmt.Errorf("failed to apply filter for the field \"%s\": %w", fieldType.Name, err)
 			}
@@ -117,7 +125,7 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 		}
 		// If field is slice or array, at least one element should conforms the attrPath filter.
 		for i := 0; i < val.Len(); i++ {
-			ac, err := needAcceptOne(val.Index(i).Interface(), op, attrPath, value)
+			ac, err := needAcceptOne(val.Index(i).Interface(), op, attrPath, value, cmp)
 			if err != nil {
 				return false, fmt.Errorf("failed to apply filter to the slice element with indedx %d: %w", i, err)
 			}
@@ -135,13 +143,13 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 	}
 	// Enums (e.g. protobuf) compare by name.
 	if stringer, ok := getStringer(val); ok {
-		return applyPredicate(stringer.String(), op.GetText(), valueText(value))
+		return applyPredicate(stringer.String(), op.GetText(), valueText(value), cmp)
 	}
 	strVal, err := convertToString(val)
 	if err != nil {
 		return false, fmt.Errorf("failed to convert leaf field value to the string: %w", err)
 	}
-	return applyPredicate(strVal, op.GetText(), valueText(value))
+	return applyPredicate(strVal, op.GetText(), valueText(value), cmp)
 }
 
 type BinaryPredicate[T constraints.Ordered] func(T, T) bool
@@ -215,12 +223,38 @@ func getStringer(val reflect.Value) (fmt.Stringer, bool) {
 	return nil, false
 }
 
-func applyPredicate(actualValue, op, expectedValue string) (bool, error) {
+func applyPredicate(actualValue, op, expectedValue string, cmp Comparator) (bool, error) {
+	if cmp != nil {
+		return applyComparator(actualValue, op, expectedValue, cmp)
+	}
 	binOp, err := opOneToBinaryPredicate[string](op)
 	if err != nil {
 		return false, fmt.Errorf("failed to get binary predicate from option \"%s\": %w", op, err)
 	}
 	return binOp(actualValue, expectedValue), nil
+}
+
+func applyComparator(actualValue, op, expectedValue string, cmp Comparator) (bool, error) {
+	binOp, err := opOneToBinaryPredicate[int](op)
+	if err != nil {
+		return false, fmt.Errorf("failed to get binary predicate from option \"%s\": %w", op, err)
+	}
+	if actualValue == "" {
+		return op == "neq", nil
+	}
+	res, err := cmp(actualValue, expectedValue)
+	if err != nil {
+		return false, fmt.Errorf("failed to compare \"%s\" with \"%s\": %w", actualValue, expectedValue, err)
+	}
+	return binOp(res, 0), nil
+}
+
+func attrPathText(attrPath []parser.IAttrNameContext) string {
+	names := make([]string, len(attrPath))
+	for i, attr := range attrPath {
+		names[i] = attr.GetText()
+	}
+	return strings.Join(names, "/")
 }
 
 func fieldMatchesName(field reflect.StructField, name string) bool {

@@ -45,7 +45,15 @@ A value that contains `,`, `'` or `)` is enclosed in single quotes, with a quote
 (`(eq,name,'a,b''c')`). An unquoted value may contain spaces, `/` and URL characters
 (`(eq,source/http/url,https://example.com/a.img)`). A leaf that implements `fmt.Stringer`, such as a protobuf enum, is
 compared by its string value. A protobuf oneof is transparent: its members are named directly (`source/http/url` when `http` is a oneof member of
-`source`), and a member that is not set does not match.
+`source`), and a member that is not set does not match. A nil pointer on the attribute path does not match either, for
+any operator.
+
+Values compare as strings. `WithComparator` compares one attribute path with your own function instead, for all of
+`eq`, `neq`, `gt`, `lt`, `gte` and `lte`; an empty attribute is unset and only `neq` matches it:
+
+```golang
+res, err := filter.FilterList(objs, "filter=(gt,parts/size,10Gi)", filter.WithComparator("parts/size", compareSizes))
+```
 
 ### Examples
 

@@ -38,15 +38,30 @@ opMulti
     ;
 
 attrName
-    : STRING
+    : name
     ;
 
+// Quoted when it holds ',', a quote or ')' (SOL 013 5.2.2); unquoted, it may span several tokens.
 value
+    : QUOTED
+    | (name | '/' | '=')+
+    ;
+
+name
     : STRING
+    | keyword
+    ;
+
+keyword
+    : 'filter' | 'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'in' | 'nin' | 'cont' | 'ncont'
+    ;
+
+QUOTED
+    : '\'' ( ~'\'' | '\'\'' )* '\''
     ;
 
 STRING
-    : [-a-zA-Z0-9@_]+    // Basic string support, can be extended
+    : [-a-zA-Z0-9@_.:?&%+~#!*$]+
     ;
 
 WS

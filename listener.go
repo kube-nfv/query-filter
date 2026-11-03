@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/kube-nfv/query-filter/antlr/generate"
 	"golang.org/x/exp/constraints"
 )
@@ -68,14 +69,27 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 	if val.Kind() == reflect.Struct {
 		if attrPathLen == 0 {
 			if stringer, ok := getStringer(val); ok {
-				return applyPredicate(stringer.String(), op.GetText(), value.GetText())
+				return applyPredicate(stringer.String(), op.GetText(), valueText(value))
 			}
 			return false, fmt.Errorf("field of the struct type can't be the last element")
 		}
 		nextElem := attrPath[0].GetText()
+		hasOneof := false
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Field(i)
 			fieldType := val.Type().Field(i)
+
+			// A protobuf oneof is an interface holding a wrapper struct whose field is the member set.
+			if _, ok := fieldType.Tag.Lookup("protobuf_oneof"); ok {
+				hasOneof = true
+				if !field.IsNil() {
+					if wrapper := derefPointer(field.Elem()); wrapper.Kind() == reflect.Struct && wrapper.NumField() == 1 &&
+						fieldMatchesName(wrapper.Type().Field(0), nextElem) {
+						return needAcceptOne(wrapper.Interface(), op, attrPath, value)
+					}
+				}
+				continue
+			}
 
 			if !fieldMatchesName(fieldType, nextElem) {
 				continue
@@ -89,6 +103,10 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 				return false, fmt.Errorf("failed to apply filter for the field \"%s\": %w", fieldType.Name, err)
 			}
 			return res, nil
+		}
+		if hasOneof {
+			// Possibly a oneof member that is not set.
+			return false, nil
 		}
 		return false, fmt.Errorf("struct doesn't contains \"%s\" field", nextElem)
 	}
@@ -115,11 +133,15 @@ func needAcceptOne[T any](obj T, op parser.IOpOneContext, attrPath []parser.IAtt
 	if attrPathLen != 0 {
 		return false, fmt.Errorf("found leaf field while attributes still exists")
 	}
+	// Enums (e.g. protobuf) compare by name.
+	if stringer, ok := getStringer(val); ok {
+		return applyPredicate(stringer.String(), op.GetText(), valueText(value))
+	}
 	strVal, err := convertToString(val)
 	if err != nil {
 		return false, fmt.Errorf("failed to convert leaf field value to the string: %w", err)
 	}
-	return applyPredicate(strVal, op.GetText(), value.GetText())
+	return applyPredicate(strVal, op.GetText(), valueText(value))
 }
 
 type BinaryPredicate[T constraints.Ordered] func(T, T) bool
@@ -215,4 +237,14 @@ func fieldMatchesName(field reflect.StructField, name string) bool {
 		}
 	}
 	return exportedFieldNameToLower(field.Name) == name
+}
+
+// valueText returns a value as written: unquoted (with ” as a quote), or its original text, spaces included.
+func valueText(value parser.IValueContext) string {
+	if q := value.QUOTED(); q != nil {
+		s := q.GetText()
+		return strings.ReplaceAll(s[1:len(s)-1], "''", "'")
+	}
+	start, stop := value.GetStart(), value.GetStop()
+	return start.GetInputStream().GetTextFromInterval(antlr.NewInterval(start.GetStart(), stop.GetStop()))
 }

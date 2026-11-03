@@ -315,3 +315,96 @@ func TestProtobufJSONName(t *testing.T) {
 	_, err = FilterList(flavours, "filter=(eq,flavour_name,large)")
 	assert.Error(t, err)
 }
+
+// ProtoState mirrors a protoc-gen-go enum: an int32 with a value-receiver String.
+type ProtoState int32
+
+func (s ProtoState) String() string {
+	return map[ProtoState]string{0: "STATE_UNSPECIFIED", 1: "STATE_STARTED"}[s]
+}
+
+type ProtoCompute struct {
+	State ProtoState `protobuf:"varint,1,opt,name=state,proto3,enum=x.State" json:"state,omitempty"`
+}
+
+func TestEnumByName(t *testing.T) {
+	computes := []*ProtoCompute{{State: 0}, {State: 1}}
+
+	res, err := FilterList(computes, "filter=(eq,state,STATE_STARTED)")
+	assert.NoError(t, err)
+	assert.Equal(t, []*ProtoCompute{computes[1]}, res)
+}
+
+type Named struct {
+	Name   string `json:"name"`
+	Filter string `json:"filter"`
+}
+
+func TestValues(t *testing.T) {
+	objs := []*Named{
+		{Name: "Smoke VM_1"},
+		{Name: "https://example.com/images/cirros-0.6.2.img?v=1&x=%20"},
+		{Name: "a,b)'c"},
+		{Name: "eq", Filter: "in"},
+	}
+	tests := []struct {
+		name   string
+		filter string
+		want   []*Named
+	}{
+		{name: "spaces", filter: "(eq,name,Smoke VM_1)", want: objs[0:1]},
+		{name: "url", filter: "(eq,name,https://example.com/images/cirros-0.6.2.img?v=1&x=%20)", want: objs[1:2]},
+		{name: "quoted, with an escaped quote", filter: "(eq,name,'a,b)''c')", want: objs[2:3]},
+		{name: "quoted url", filter: "(eq,name,'https://example.com/images/cirros-0.6.2.img?v=1&x=%20')", want: objs[1:2]},
+		{name: "keywords as name and value", filter: "(eq,name,eq);(eq,filter,in)", want: objs[3:4]},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := FilterList(objs, "filter="+tt.filter)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, res)
+		})
+	}
+}
+
+// ProtoImage mirrors protoc-gen-go output for a oneof: an interface field holding one wrapper struct per member.
+type ProtoImage struct {
+	Source *ProtoImageSource `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+}
+
+type ProtoImageSource struct {
+	Source isProtoImageSource_Source `protobuf_oneof:"source"`
+}
+
+type isProtoImageSource_Source interface{ isProtoImageSource_Source() }
+
+type ProtoImageSource_Http struct {
+	Http *ProtoImageSourceHttp `protobuf:"bytes,1,opt,name=http,proto3,oneof"`
+}
+
+type ProtoImageSource_RegistryImage struct {
+	RegistryImage string `protobuf:"bytes,2,opt,name=registry_image,json=registryImage,proto3,oneof"`
+}
+
+func (*ProtoImageSource_Http) isProtoImageSource_Source()          {}
+func (*ProtoImageSource_RegistryImage) isProtoImageSource_Source() {}
+
+type ProtoImageSourceHttp struct {
+	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+}
+
+func TestProtobufOneof(t *testing.T) {
+	images := []*ProtoImage{
+		{Source: &ProtoImageSource{Source: &ProtoImageSource_Http{Http: &ProtoImageSourceHttp{Url: "https://example.com/a.img"}}}},
+		{Source: &ProtoImageSource{Source: &ProtoImageSource_RegistryImage{RegistryImage: "quay.io/a:1"}}},
+		{Source: &ProtoImageSource{}},
+	}
+
+	res, err := FilterList(images, "filter=(eq,source/http/url,https://example.com/a.img)")
+	assert.NoError(t, err)
+	assert.Equal(t, images[0:1], res)
+
+	res, err = FilterList(images, "filter=(eq,source/registryImage,quay.io/a:1)")
+	assert.NoError(t, err)
+	assert.Equal(t, images[1:2], res)
+}

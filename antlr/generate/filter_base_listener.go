@@ -74,3 +74,15 @@ func (s *BaseFilterListener) EnterValue(ctx *ValueContext) {}
 
 // ExitValue is called when production value is exited.
 func (s *BaseFilterListener) ExitValue(ctx *ValueContext) {}
+
+// EnterName is called when production name is entered.
+func (s *BaseFilterListener) EnterName(ctx *NameContext) {}
+
+// ExitName is called when production name is exited.
+func (s *BaseFilterListener) ExitName(ctx *NameContext) {}
+
+// EnterKeyword is called when production keyword is entered.
+func (s *BaseFilterListener) EnterKeyword(ctx *KeywordContext) {}
+
+// ExitKeyword is called when production keyword is exited.
+func (s *BaseFilterListener) ExitKeyword(ctx *KeywordContext) {}

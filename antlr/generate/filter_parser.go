@@ -39,44 +39,53 @@ func filterParserInit() {
   }
   staticData.SymbolicNames = []string{
     "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", 
-    "", "STRING", "WS",
+    "", "QUOTED", "STRING", "WS",
   }
   staticData.RuleNames = []string{
     "filter", "filterExpr", "simpleFilterExpr", "simpleFilterExprOne", "simpleFilterExprMulti", 
-    "opOne", "opMulti", "attrName", "value",
+    "opOne", "opMulti", "attrName", "value", "name", "keyword",
   }
   staticData.PredictionContextCache = antlr.NewPredictionContextCache()
   staticData.serializedATN = []int32{
-	4, 1, 19, 81, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7, 
-	4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 1, 0, 1, 0, 1, 0, 1, 
-	0, 1, 1, 1, 1, 1, 1, 5, 1, 26, 8, 1, 10, 1, 12, 1, 29, 9, 1, 1, 2, 1, 2, 
-	1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, 2, 39, 8, 2, 1, 3, 1, 3, 1, 3, 1, 
-	3, 1, 3, 5, 3, 46, 8, 3, 10, 3, 12, 3, 49, 9, 3, 1, 3, 1, 3, 1, 3, 1, 4, 
-	1, 4, 1, 4, 1, 4, 1, 4, 5, 4, 59, 8, 4, 10, 4, 12, 4, 62, 9, 4, 1, 4, 1, 
-	4, 1, 4, 1, 4, 5, 4, 68, 8, 4, 10, 4, 12, 4, 71, 9, 4, 1, 5, 1, 5, 1, 6, 
-	1, 6, 1, 7, 1, 7, 1, 8, 1, 8, 1, 8, 0, 0, 9, 0, 2, 4, 6, 8, 10, 12, 14, 
-	16, 0, 2, 1, 0, 8, 13, 1, 0, 14, 17, 76, 0, 18, 1, 0, 0, 0, 2, 22, 1, 0, 
-	0, 0, 4, 38, 1, 0, 0, 0, 6, 40, 1, 0, 0, 0, 8, 53, 1, 0, 0, 0, 10, 72, 
-	1, 0, 0, 0, 12, 74, 1, 0, 0, 0, 14, 76, 1, 0, 0, 0, 16, 78, 1, 0, 0, 0, 
-	18, 19, 5, 1, 0, 0, 19, 20, 5, 2, 0, 0, 20, 21, 3, 2, 1, 0, 21, 1, 1, 0, 
-	0, 0, 22, 27, 3, 4, 2, 0, 23, 24, 5, 3, 0, 0, 24, 26, 3, 4, 2, 0, 25, 23, 
-	1, 0, 0, 0, 26, 29, 1, 0, 0, 0, 27, 25, 1, 0, 0, 0, 27, 28, 1, 0, 0, 0, 
-	28, 3, 1, 0, 0, 0, 29, 27, 1, 0, 0, 0, 30, 31, 5, 4, 0, 0, 31, 32, 3, 6, 
-	3, 0, 32, 33, 5, 5, 0, 0, 33, 39, 1, 0, 0, 0, 34, 35, 5, 4, 0, 0, 35, 36, 
-	3, 8, 4, 0, 36, 37, 5, 5, 0, 0, 37, 39, 1, 0, 0, 0, 38, 30, 1, 0, 0, 0, 
-	38, 34, 1, 0, 0, 0, 39, 5, 1, 0, 0, 0, 40, 41, 3, 10, 5, 0, 41, 42, 5, 
-	6, 0, 0, 42, 47, 3, 14, 7, 0, 43, 44, 5, 7, 0, 0, 44, 46, 3, 14, 7, 0, 
-	45, 43, 1, 0, 0, 0, 46, 49, 1, 0, 0, 0, 47, 45, 1, 0, 0, 0, 47, 48, 1, 
-	0, 0, 0, 48, 50, 1, 0, 0, 0, 49, 47, 1, 0, 0, 0, 50, 51, 5, 6, 0, 0, 51, 
-	52, 3, 16, 8, 0, 52, 7, 1, 0, 0, 0, 53, 54, 3, 12, 6, 0, 54, 55, 5, 6, 
-	0, 0, 55, 60, 3, 14, 7, 0, 56, 57, 5, 7, 0, 0, 57, 59, 3, 14, 7, 0, 58, 
-	56, 1, 0, 0, 0, 59, 62, 1, 0, 0, 0, 60, 58, 1, 0, 0, 0, 60, 61, 1, 0, 0, 
-	0, 61, 63, 1, 0, 0, 0, 62, 60, 1, 0, 0, 0, 63, 64, 5, 6, 0, 0, 64, 69, 
-	3, 16, 8, 0, 65, 66, 5, 6, 0, 0, 66, 68, 3, 16, 8, 0, 67, 65, 1, 0, 0, 
-	0, 68, 71, 1, 0, 0, 0, 69, 67, 1, 0, 0, 0, 69, 70, 1, 0, 0, 0, 70, 9, 1, 
-	0, 0, 0, 71, 69, 1, 0, 0, 0, 72, 73, 7, 0, 0, 0, 73, 11, 1, 0, 0, 0, 74, 
-	75, 7, 1, 0, 0, 75, 13, 1, 0, 0, 0, 76, 77, 5, 18, 0, 0, 77, 15, 1, 0, 
-	0, 0, 78, 79, 5, 18, 0, 0, 79, 17, 1, 0, 0, 0, 5, 27, 38, 47, 60, 69,
+	4, 1, 20, 99, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7, 
+	4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7, 
+	10, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 5, 1, 30, 8, 1, 10, 1, 12, 
+	1, 33, 9, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, 2, 43, 
+	8, 2, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 5, 3, 50, 8, 3, 10, 3, 12, 3, 53, 9, 
+	3, 1, 3, 1, 3, 1, 3, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 5, 4, 63, 8, 4, 10, 
+	4, 12, 4, 66, 9, 4, 1, 4, 1, 4, 1, 4, 1, 4, 5, 4, 72, 8, 4, 10, 4, 12, 
+	4, 75, 9, 4, 1, 5, 1, 5, 1, 6, 1, 6, 1, 7, 1, 7, 1, 8, 1, 8, 1, 8, 1, 8, 
+	4, 8, 87, 8, 8, 11, 8, 12, 8, 88, 3, 8, 91, 8, 8, 1, 9, 1, 9, 3, 9, 95, 
+	8, 9, 1, 10, 1, 10, 1, 10, 0, 0, 11, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 
+	20, 0, 3, 1, 0, 8, 13, 1, 0, 14, 17, 2, 0, 1, 1, 8, 17, 97, 0, 22, 1, 0, 
+	0, 0, 2, 26, 1, 0, 0, 0, 4, 42, 1, 0, 0, 0, 6, 44, 1, 0, 0, 0, 8, 57, 1, 
+	0, 0, 0, 10, 76, 1, 0, 0, 0, 12, 78, 1, 0, 0, 0, 14, 80, 1, 0, 0, 0, 16, 
+	90, 1, 0, 0, 0, 18, 94, 1, 0, 0, 0, 20, 96, 1, 0, 0, 0, 22, 23, 5, 1, 0, 
+	0, 23, 24, 5, 2, 0, 0, 24, 25, 3, 2, 1, 0, 25, 1, 1, 0, 0, 0, 26, 31, 3, 
+	4, 2, 0, 27, 28, 5, 3, 0, 0, 28, 30, 3, 4, 2, 0, 29, 27, 1, 0, 0, 0, 30, 
+	33, 1, 0, 0, 0, 31, 29, 1, 0, 0, 0, 31, 32, 1, 0, 0, 0, 32, 3, 1, 0, 0, 
+	0, 33, 31, 1, 0, 0, 0, 34, 35, 5, 4, 0, 0, 35, 36, 3, 6, 3, 0, 36, 37, 
+	5, 5, 0, 0, 37, 43, 1, 0, 0, 0, 38, 39, 5, 4, 0, 0, 39, 40, 3, 8, 4, 0, 
+	40, 41, 5, 5, 0, 0, 41, 43, 1, 0, 0, 0, 42, 34, 1, 0, 0, 0, 42, 38, 1, 
+	0, 0, 0, 43, 5, 1, 0, 0, 0, 44, 45, 3, 10, 5, 0, 45, 46, 5, 6, 0, 0, 46, 
+	51, 3, 14, 7, 0, 47, 48, 5, 7, 0, 0, 48, 50, 3, 14, 7, 0, 49, 47, 1, 0, 
+	0, 0, 50, 53, 1, 0, 0, 0, 51, 49, 1, 0, 0, 0, 51, 52, 1, 0, 0, 0, 52, 54, 
+	1, 0, 0, 0, 53, 51, 1, 0, 0, 0, 54, 55, 5, 6, 0, 0, 55, 56, 3, 16, 8, 0, 
+	56, 7, 1, 0, 0, 0, 57, 58, 3, 12, 6, 0, 58, 59, 5, 6, 0, 0, 59, 64, 3, 
+	14, 7, 0, 60, 61, 5, 7, 0, 0, 61, 63, 3, 14, 7, 0, 62, 60, 1, 0, 0, 0, 
+	63, 66, 1, 0, 0, 0, 64, 62, 1, 0, 0, 0, 64, 65, 1, 0, 0, 0, 65, 67, 1, 
+	0, 0, 0, 66, 64, 1, 0, 0, 0, 67, 68, 5, 6, 0, 0, 68, 73, 3, 16, 8, 0, 69, 
+	70, 5, 6, 0, 0, 70, 72, 3, 16, 8, 0, 71, 69, 1, 0, 0, 0, 72, 75, 1, 0, 
+	0, 0, 73, 71, 1, 0, 0, 0, 73, 74, 1, 0, 0, 0, 74, 9, 1, 0, 0, 0, 75, 73, 
+	1, 0, 0, 0, 76, 77, 7, 0, 0, 0, 77, 11, 1, 0, 0, 0, 78, 79, 7, 1, 0, 0, 
+	79, 13, 1, 0, 0, 0, 80, 81, 3, 18, 9, 0, 81, 15, 1, 0, 0, 0, 82, 91, 5, 
+	18, 0, 0, 83, 87, 3, 18, 9, 0, 84, 87, 5, 7, 0, 0, 85, 87, 5, 2, 0, 0, 
+	86, 83, 1, 0, 0, 0, 86, 84, 1, 0, 0, 0, 86, 85, 1, 0, 0, 0, 87, 88, 1, 
+	0, 0, 0, 88, 86, 1, 0, 0, 0, 88, 89, 1, 0, 0, 0, 89, 91, 1, 0, 0, 0, 90, 
+	82, 1, 0, 0, 0, 90, 86, 1, 0, 0, 0, 91, 17, 1, 0, 0, 0, 92, 95, 5, 19, 
+	0, 0, 93, 95, 3, 20, 10, 0, 94, 92, 1, 0, 0, 0, 94, 93, 1, 0, 0, 0, 95, 
+	19, 1, 0, 0, 0, 96, 97, 7, 2, 0, 0, 97, 21, 1, 0, 0, 0, 9, 31, 42, 51, 
+	64, 73, 86, 88, 90, 94,
 }
   deserializer := antlr.NewATNDeserializer(nil)
   staticData.atn = deserializer.Deserialize(staticData.serializedATN)
@@ -133,8 +142,9 @@ const (
 	FilterParserT__14 = 15
 	FilterParserT__15 = 16
 	FilterParserT__16 = 17
-	FilterParserSTRING = 18
-	FilterParserWS = 19
+	FilterParserQUOTED = 18
+	FilterParserSTRING = 19
+	FilterParserWS = 20
 )
 
 // FilterParser rules.
@@ -148,6 +158,8 @@ const (
 	FilterParserRULE_opMulti = 6
 	FilterParserRULE_attrName = 7
 	FilterParserRULE_value = 8
+	FilterParserRULE_name = 9
+	FilterParserRULE_keyword = 10
 )
 
 // IFilterContext is an interface to support dynamic dispatch.
@@ -241,7 +253,7 @@ func (p *FilterParser) Filter() (localctx IFilterContext) {
 	p.EnterRule(localctx, 0, FilterParserRULE_filter)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(18)
+		p.SetState(22)
 		p.Match(FilterParserT__0)
 		if p.HasError() {
 				// Recognition error - abort rule
@@ -249,7 +261,7 @@ func (p *FilterParser) Filter() (localctx IFilterContext) {
 		}
 	}
 	{
-		p.SetState(19)
+		p.SetState(23)
 		p.Match(FilterParserT__1)
 		if p.HasError() {
 				// Recognition error - abort rule
@@ -257,7 +269,7 @@ func (p *FilterParser) Filter() (localctx IFilterContext) {
 		}
 	}
 	{
-		p.SetState(20)
+		p.SetState(24)
 		p.FilterExpr()
 	}
 
@@ -396,10 +408,10 @@ func (p *FilterParser) FilterExpr() (localctx IFilterExprContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(22)
+		p.SetState(26)
 		p.SimpleFilterExpr()
 	}
-	p.SetState(27)
+	p.SetState(31)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -409,7 +421,7 @@ func (p *FilterParser) FilterExpr() (localctx IFilterExprContext) {
 
 	for _la == FilterParserT__2 {
 		{
-			p.SetState(23)
+			p.SetState(27)
 			p.Match(FilterParserT__2)
 			if p.HasError() {
 					// Recognition error - abort rule
@@ -417,12 +429,12 @@ func (p *FilterParser) FilterExpr() (localctx IFilterExprContext) {
 			}
 		}
 		{
-			p.SetState(24)
+			p.SetState(28)
 			p.SimpleFilterExpr()
 		}
 
 
-		p.SetState(29)
+		p.SetState(33)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 	    	goto errorExit
@@ -552,7 +564,7 @@ func (s *SimpleFilterExprContext) ExitRule(listener antlr.ParseTreeListener) {
 func (p *FilterParser) SimpleFilterExpr() (localctx ISimpleFilterExprContext) {
 	localctx = NewSimpleFilterExprContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 4, FilterParserRULE_simpleFilterExpr)
-	p.SetState(38)
+	p.SetState(42)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -562,7 +574,7 @@ func (p *FilterParser) SimpleFilterExpr() (localctx ISimpleFilterExprContext) {
 	case 1:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(30)
+			p.SetState(34)
 			p.Match(FilterParserT__3)
 			if p.HasError() {
 					// Recognition error - abort rule
@@ -570,11 +582,11 @@ func (p *FilterParser) SimpleFilterExpr() (localctx ISimpleFilterExprContext) {
 			}
 		}
 		{
-			p.SetState(31)
+			p.SetState(35)
 			p.SimpleFilterExprOne()
 		}
 		{
-			p.SetState(32)
+			p.SetState(36)
 			p.Match(FilterParserT__4)
 			if p.HasError() {
 					// Recognition error - abort rule
@@ -586,7 +598,7 @@ func (p *FilterParser) SimpleFilterExpr() (localctx ISimpleFilterExprContext) {
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(34)
+			p.SetState(38)
 			p.Match(FilterParserT__3)
 			if p.HasError() {
 					// Recognition error - abort rule
@@ -594,11 +606,11 @@ func (p *FilterParser) SimpleFilterExpr() (localctx ISimpleFilterExprContext) {
 			}
 		}
 		{
-			p.SetState(35)
+			p.SetState(39)
 			p.SimpleFilterExprMulti()
 		}
 		{
-			p.SetState(36)
+			p.SetState(40)
 			p.Match(FilterParserT__4)
 			if p.HasError() {
 					// Recognition error - abort rule
@@ -778,11 +790,11 @@ func (p *FilterParser) SimpleFilterExprOne() (localctx ISimpleFilterExprOneConte
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(40)
+		p.SetState(44)
 		p.OpOne()
 	}
 	{
-		p.SetState(41)
+		p.SetState(45)
 		p.Match(FilterParserT__5)
 		if p.HasError() {
 				// Recognition error - abort rule
@@ -790,10 +802,10 @@ func (p *FilterParser) SimpleFilterExprOne() (localctx ISimpleFilterExprOneConte
 		}
 	}
 	{
-		p.SetState(42)
+		p.SetState(46)
 		p.AttrName()
 	}
-	p.SetState(47)
+	p.SetState(51)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -803,7 +815,7 @@ func (p *FilterParser) SimpleFilterExprOne() (localctx ISimpleFilterExprOneConte
 
 	for _la == FilterParserT__6 {
 		{
-			p.SetState(43)
+			p.SetState(47)
 			p.Match(FilterParserT__6)
 			if p.HasError() {
 					// Recognition error - abort rule
@@ -811,12 +823,12 @@ func (p *FilterParser) SimpleFilterExprOne() (localctx ISimpleFilterExprOneConte
 			}
 		}
 		{
-			p.SetState(44)
+			p.SetState(48)
 			p.AttrName()
 		}
 
 
-		p.SetState(49)
+		p.SetState(53)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 	    	goto errorExit
@@ -824,7 +836,7 @@ func (p *FilterParser) SimpleFilterExprOne() (localctx ISimpleFilterExprOneConte
 		_la = p.GetTokenStream().LA(1)
 	}
 	{
-		p.SetState(50)
+		p.SetState(54)
 		p.Match(FilterParserT__5)
 		if p.HasError() {
 				// Recognition error - abort rule
@@ -832,7 +844,7 @@ func (p *FilterParser) SimpleFilterExprOne() (localctx ISimpleFilterExprOneConte
 		}
 	}
 	{
-		p.SetState(51)
+		p.SetState(55)
 		p.Value()
 	}
 
@@ -1031,11 +1043,11 @@ func (p *FilterParser) SimpleFilterExprMulti() (localctx ISimpleFilterExprMultiC
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(53)
+		p.SetState(57)
 		p.OpMulti()
 	}
 	{
-		p.SetState(54)
+		p.SetState(58)
 		p.Match(FilterParserT__5)
 		if p.HasError() {
 				// Recognition error - abort rule
@@ -1043,10 +1055,10 @@ func (p *FilterParser) SimpleFilterExprMulti() (localctx ISimpleFilterExprMultiC
 		}
 	}
 	{
-		p.SetState(55)
+		p.SetState(59)
 		p.AttrName()
 	}
-	p.SetState(60)
+	p.SetState(64)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1056,7 +1068,7 @@ func (p *FilterParser) SimpleFilterExprMulti() (localctx ISimpleFilterExprMultiC
 
 	for _la == FilterParserT__6 {
 		{
-			p.SetState(56)
+			p.SetState(60)
 			p.Match(FilterParserT__6)
 			if p.HasError() {
 					// Recognition error - abort rule
@@ -1064,12 +1076,12 @@ func (p *FilterParser) SimpleFilterExprMulti() (localctx ISimpleFilterExprMultiC
 			}
 		}
 		{
-			p.SetState(57)
+			p.SetState(61)
 			p.AttrName()
 		}
 
 
-		p.SetState(62)
+		p.SetState(66)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 	    	goto errorExit
@@ -1077,7 +1089,7 @@ func (p *FilterParser) SimpleFilterExprMulti() (localctx ISimpleFilterExprMultiC
 		_la = p.GetTokenStream().LA(1)
 	}
 	{
-		p.SetState(63)
+		p.SetState(67)
 		p.Match(FilterParserT__5)
 		if p.HasError() {
 				// Recognition error - abort rule
@@ -1085,10 +1097,10 @@ func (p *FilterParser) SimpleFilterExprMulti() (localctx ISimpleFilterExprMultiC
 		}
 	}
 	{
-		p.SetState(64)
+		p.SetState(68)
 		p.Value()
 	}
-	p.SetState(69)
+	p.SetState(73)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1098,7 +1110,7 @@ func (p *FilterParser) SimpleFilterExprMulti() (localctx ISimpleFilterExprMultiC
 
 	for _la == FilterParserT__5 {
 		{
-			p.SetState(65)
+			p.SetState(69)
 			p.Match(FilterParserT__5)
 			if p.HasError() {
 					// Recognition error - abort rule
@@ -1106,12 +1118,12 @@ func (p *FilterParser) SimpleFilterExprMulti() (localctx ISimpleFilterExprMultiC
 			}
 		}
 		{
-			p.SetState(66)
+			p.SetState(70)
 			p.Value()
 		}
 
 
-		p.SetState(71)
+		p.SetState(75)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 	    	goto errorExit
@@ -1207,7 +1219,7 @@ func (p *FilterParser) OpOne() (localctx IOpOneContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(72)
+		p.SetState(76)
 		_la = p.GetTokenStream().LA(1)
 
 		if !(((int64(_la) & ^0x3f) == 0 && ((int64(1) << _la) & 16128) != 0)) {
@@ -1306,7 +1318,7 @@ func (p *FilterParser) OpMulti() (localctx IOpMultiContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(74)
+		p.SetState(78)
 		_la = p.GetTokenStream().LA(1)
 
 		if !(((int64(_la) & ^0x3f) == 0 && ((int64(1) << _la) & 245760) != 0)) {
@@ -1341,7 +1353,7 @@ type IAttrNameContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	STRING() antlr.TerminalNode
+	Name() INameContext
 
 	// IsAttrNameContext differentiates from other interfaces.
 	IsAttrNameContext()
@@ -1379,8 +1391,20 @@ func NewAttrNameContext(parser antlr.Parser, parent antlr.ParserRuleContext, inv
 
 func (s *AttrNameContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *AttrNameContext) STRING() antlr.TerminalNode {
-	return s.GetToken(FilterParserSTRING, 0)
+func (s *AttrNameContext) Name() INameContext {
+	var t antlr.RuleContext;
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(INameContext); ok {
+			t = ctx.(antlr.RuleContext);
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(INameContext)
 }
 
 func (s *AttrNameContext) GetRuleContext() antlr.RuleContext {
@@ -1412,12 +1436,8 @@ func (p *FilterParser) AttrName() (localctx IAttrNameContext) {
 	p.EnterRule(localctx, 14, FilterParserRULE_attrName)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(76)
-		p.Match(FilterParserSTRING)
-		if p.HasError() {
-				// Recognition error - abort rule
-				goto errorExit
-		}
+		p.SetState(80)
+		p.Name()
 	}
 
 
@@ -1444,7 +1464,9 @@ type IValueContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	STRING() antlr.TerminalNode
+	QUOTED() antlr.TerminalNode
+	AllName() []INameContext
+	Name(i int) INameContext
 
 	// IsValueContext differentiates from other interfaces.
 	IsValueContext()
@@ -1482,8 +1504,49 @@ func NewValueContext(parser antlr.Parser, parent antlr.ParserRuleContext, invoki
 
 func (s *ValueContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *ValueContext) STRING() antlr.TerminalNode {
-	return s.GetToken(FilterParserSTRING, 0)
+func (s *ValueContext) QUOTED() antlr.TerminalNode {
+	return s.GetToken(FilterParserQUOTED, 0)
+}
+
+func (s *ValueContext) AllName() []INameContext {
+	children := s.GetChildren()
+	len := 0
+	for _, ctx := range children {
+		if _, ok := ctx.(INameContext); ok {
+			len++
+		}
+	}
+
+	tst := make([]INameContext, len)
+	i := 0
+	for _, ctx := range children {
+		if t, ok := ctx.(INameContext); ok {
+			tst[i] = t.(INameContext)
+			i++
+		}
+	}
+
+	return tst
+}
+
+func (s *ValueContext) Name(i int) INameContext {
+	var t antlr.RuleContext;
+	j := 0
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(INameContext); ok {
+			if j == i {
+				t = ctx.(antlr.RuleContext);
+				break
+			}
+			j++
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(INameContext)
 }
 
 func (s *ValueContext) GetRuleContext() antlr.RuleContext {
@@ -1513,13 +1576,332 @@ func (s *ValueContext) ExitRule(listener antlr.ParseTreeListener) {
 func (p *FilterParser) Value() (localctx IValueContext) {
 	localctx = NewValueContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 16, FilterParserRULE_value)
+	var _la int
+
+	p.SetState(90)
+	p.GetErrorHandler().Sync(p)
+	if p.HasError() {
+		goto errorExit
+	}
+
+	switch p.GetTokenStream().LA(1) {
+	case FilterParserQUOTED:
+		p.EnterOuterAlt(localctx, 1)
+		{
+			p.SetState(82)
+			p.Match(FilterParserQUOTED)
+			if p.HasError() {
+					// Recognition error - abort rule
+					goto errorExit
+			}
+		}
+
+
+	case FilterParserT__0, FilterParserT__1, FilterParserT__6, FilterParserT__7, FilterParserT__8, FilterParserT__9, FilterParserT__10, FilterParserT__11, FilterParserT__12, FilterParserT__13, FilterParserT__14, FilterParserT__15, FilterParserT__16, FilterParserSTRING:
+		p.EnterOuterAlt(localctx, 2)
+		p.SetState(86)
+		p.GetErrorHandler().Sync(p)
+		if p.HasError() {
+			goto errorExit
+		}
+		_la = p.GetTokenStream().LA(1)
+
+
+		for ok := true; ok; ok = ((int64(_la) & ^0x3f) == 0 && ((int64(1) << _la) & 786310) != 0) {
+			p.SetState(86)
+			p.GetErrorHandler().Sync(p)
+			if p.HasError() {
+				goto errorExit
+			}
+
+			switch p.GetTokenStream().LA(1) {
+			case FilterParserT__0, FilterParserT__7, FilterParserT__8, FilterParserT__9, FilterParserT__10, FilterParserT__11, FilterParserT__12, FilterParserT__13, FilterParserT__14, FilterParserT__15, FilterParserT__16, FilterParserSTRING:
+				{
+					p.SetState(83)
+					p.Name()
+				}
+
+
+			case FilterParserT__6:
+				{
+					p.SetState(84)
+					p.Match(FilterParserT__6)
+					if p.HasError() {
+							// Recognition error - abort rule
+							goto errorExit
+					}
+				}
+
+
+			case FilterParserT__1:
+				{
+					p.SetState(85)
+					p.Match(FilterParserT__1)
+					if p.HasError() {
+							// Recognition error - abort rule
+							goto errorExit
+					}
+				}
+
+
+
+			default:
+				p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+				goto errorExit
+			}
+
+			p.SetState(88)
+			p.GetErrorHandler().Sync(p)
+			if p.HasError() {
+		    	goto errorExit
+		    }
+			_la = p.GetTokenStream().LA(1)
+		}
+
+
+
+	default:
+		p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+		goto errorExit
+	}
+
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.ExitRule()
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+
+// INameContext is an interface to support dynamic dispatch.
+type INameContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+
+	// Getter signatures
+	STRING() antlr.TerminalNode
+	Keyword() IKeywordContext
+
+	// IsNameContext differentiates from other interfaces.
+	IsNameContext()
+}
+
+type NameContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+}
+
+func NewEmptyNameContext() *NameContext {
+	var p = new(NameContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = FilterParserRULE_name
+	return p
+}
+
+func InitEmptyNameContext(p *NameContext)  {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = FilterParserRULE_name
+}
+
+func (*NameContext) IsNameContext() {}
+
+func NewNameContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *NameContext {
+	var p = new(NameContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = FilterParserRULE_name
+
+	return p
+}
+
+func (s *NameContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *NameContext) STRING() antlr.TerminalNode {
+	return s.GetToken(FilterParserSTRING, 0)
+}
+
+func (s *NameContext) Keyword() IKeywordContext {
+	var t antlr.RuleContext;
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IKeywordContext); ok {
+			t = ctx.(antlr.RuleContext);
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IKeywordContext)
+}
+
+func (s *NameContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *NameContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+
+func (s *NameContext) EnterRule(listener antlr.ParseTreeListener) {
+	if listenerT, ok := listener.(FilterListener); ok {
+		listenerT.EnterName(s)
+	}
+}
+
+func (s *NameContext) ExitRule(listener antlr.ParseTreeListener) {
+	if listenerT, ok := listener.(FilterListener); ok {
+		listenerT.ExitName(s)
+	}
+}
+
+
+
+
+func (p *FilterParser) Name() (localctx INameContext) {
+	localctx = NewNameContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 18, FilterParserRULE_name)
+	p.SetState(94)
+	p.GetErrorHandler().Sync(p)
+	if p.HasError() {
+		goto errorExit
+	}
+
+	switch p.GetTokenStream().LA(1) {
+	case FilterParserSTRING:
+		p.EnterOuterAlt(localctx, 1)
+		{
+			p.SetState(92)
+			p.Match(FilterParserSTRING)
+			if p.HasError() {
+					// Recognition error - abort rule
+					goto errorExit
+			}
+		}
+
+
+	case FilterParserT__0, FilterParserT__7, FilterParserT__8, FilterParserT__9, FilterParserT__10, FilterParserT__11, FilterParserT__12, FilterParserT__13, FilterParserT__14, FilterParserT__15, FilterParserT__16:
+		p.EnterOuterAlt(localctx, 2)
+		{
+			p.SetState(93)
+			p.Keyword()
+		}
+
+
+
+	default:
+		p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+		goto errorExit
+	}
+
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.ExitRule()
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+
+// IKeywordContext is an interface to support dynamic dispatch.
+type IKeywordContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+	// IsKeywordContext differentiates from other interfaces.
+	IsKeywordContext()
+}
+
+type KeywordContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+}
+
+func NewEmptyKeywordContext() *KeywordContext {
+	var p = new(KeywordContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = FilterParserRULE_keyword
+	return p
+}
+
+func InitEmptyKeywordContext(p *KeywordContext)  {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = FilterParserRULE_keyword
+}
+
+func (*KeywordContext) IsKeywordContext() {}
+
+func NewKeywordContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *KeywordContext {
+	var p = new(KeywordContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = FilterParserRULE_keyword
+
+	return p
+}
+
+func (s *KeywordContext) GetParser() antlr.Parser { return s.parser }
+func (s *KeywordContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *KeywordContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+
+func (s *KeywordContext) EnterRule(listener antlr.ParseTreeListener) {
+	if listenerT, ok := listener.(FilterListener); ok {
+		listenerT.EnterKeyword(s)
+	}
+}
+
+func (s *KeywordContext) ExitRule(listener antlr.ParseTreeListener) {
+	if listenerT, ok := listener.(FilterListener); ok {
+		listenerT.ExitKeyword(s)
+	}
+}
+
+
+
+
+func (p *FilterParser) Keyword() (localctx IKeywordContext) {
+	localctx = NewKeywordContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 20, FilterParserRULE_keyword)
+	var _la int
+
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(78)
-		p.Match(FilterParserSTRING)
-		if p.HasError() {
-				// Recognition error - abort rule
-				goto errorExit
+		p.SetState(96)
+		_la = p.GetTokenStream().LA(1)
+
+		if !(((int64(_la) & ^0x3f) == 0 && ((int64(1) << _la) & 261890) != 0)) {
+			p.GetErrorHandler().RecoverInline(p)
+		} else {
+			p.GetErrorHandler().ReportMatch(p)
+			p.Consume()
 		}
 	}
 

@@ -47,6 +47,13 @@ A value that contains `,`, `'` or `)` is enclosed in single quotes, with a quote
 compared by its string value. A protobuf oneof is transparent: its members are named directly (`source/http/url` when `http` is a oneof member of
 `source`), and a member that is not set does not match.
 
+Values compare as strings. `WithComparator` compares one attribute path with your own function instead, for all of
+`eq`, `neq`, `gt`, `lt`, `gte` and `lte`; an empty attribute is unset and only `neq` matches it:
+
+```golang
+res, err := filter.FilterList(objs, "filter=(gt,parts/size,10Gi)", filter.WithComparator("parts/size", compareSizes))
+```
+
 ### Examples
 
 Assume we have an list of Golang objects specified by the type:
